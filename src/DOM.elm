@@ -57,7 +57,7 @@ if not.
 
 To do traversals of the DOM, exploit that Elm allows recursive values. See
 an example
-[here](https://github.com/debois/elm-dom/blob/master/src/DOM.elm#L179-L190).
+[here](https://github.com/debois/elm-dom/blob/master/src/DOM.elm#L165-L176).
 -}
 offsetParent : a -> Json.Decoder a -> Json.Decoder a
 offsetParent x decoder =
