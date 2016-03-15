@@ -6,21 +6,7 @@ module DOM
   , Rectangle, boundingClientRect
   ) where
 
-{-| Library for reading information off the DOM. Use this if you need to
-discover geometry information (width, position, ...) of rendered elements.
-
-Elm has two major hurdles to overcome when working with the DOM:
-
- 1. Elm is pure, but the DOM mutates constantly. A function that,
- say, reads the height of a DOM element cannot be pure.
- 2. If you use VirtualDom, you do not have direct access to the DOM
- anyway.
-
-In event-handlers, we can overcome both these problems: the DOM does not
-mutate while we are handling events, and events typically contain references
-to DOM nodes.
-
-You read values off the DOM by constructing a JSON decoder.
+{-| You read values off the DOM by constructing a JSON decoder.
 See the `target` value for example use.
 
 # Traversing the DOM
@@ -50,15 +36,15 @@ import Json.Decode as Json exposing ((:=), andThen)
 decoder. E.g., to make a button which when clicked emit an Action that carries
 the width of the button:
 
-  import DOM exposing (target, offsetWidth)
+    import DOM exposing (target, offsetWidth)
 
-  type Action = Click Float
+    type Action = Click Float
 
-  myButton : Signal.Address Action -> Html
-  myButton addr =
-    button
-      [ on "click" (target offsetWidth) (Click >> Signal.message addr) ]
-      [ text "Click me!" ]
+    myButton : Signal.Address Action -> Html
+    myButton addr =
+      button
+        [ on "click" (target offsetWidth) (Click >> Signal.message addr) ]
+        [ text "Click me!" ]
 -}
 target : Json.Decoder a -> Json.Decoder a
 target decoder =
@@ -71,7 +57,7 @@ if not.
 
 To do traversals of the DOM, exploit that Elm allows recursive values. See
 an example
-[here]()
+[here](https://github.com/debois/elm-dom/blob/master/src/DOM.elm#L179-L190).
 -}
 offsetParent : a -> Json.Decoder a -> Json.Decoder a
 offsetParent x decoder =
