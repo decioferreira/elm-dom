@@ -1,16 +1,17 @@
 module DOM
-  ( target, offsetParent
+  ( target, offsetParent, parentElement, childNode, childNodes
   , offsetWidth, offsetHeight
   , offsetLeft, offsetTop
   , scrollLeft, scrollTop
   , Rectangle, boundingClientRect
+  , className
   ) where
 
 {-| You read values off the DOM by constructing a JSON decoder.
 See the `target` value for example use.
 
 # Traversing the DOM
-@docs target, offsetParent
+@docs target, offsetParent, parentElement, childNode, childNodes
 
 # Geometry
 Decoders for reading sizing etc. properties off the DOM. All decoders return
@@ -27,9 +28,12 @@ for the precise semantics of these measurements. See also
 
 # Scroll
 @docs scrollLeft, scrollTop
+
+# Miscellanous
+@docs className
 -}
 
-import Json.Decode as Json exposing ((:=), andThen)
+import Json.Decode as Decode exposing ((:=), at, andThen, Decoder)
 
 
 {-| Get the target DOM element of an event. You will usually start with this
@@ -46,12 +50,12 @@ the width of the button:
         [ on "click" (target offsetWidth) (Click >> Signal.message addr) ]
         [ text "Click me!" ]
 -}
-target : Json.Decoder a -> Json.Decoder a
+target : Decoder a -> Decoder a
 target decoder =
   "target" := decoder
 
 
-{-| Get the parent of the current element. Returns first argument if the current
+{-| Get the offsetParent of the current element. Returns first argument if the current
 element is already the root; applies the second argument to the parent element
 if not.
 
@@ -59,55 +63,87 @@ To do traversals of the DOM, exploit that Elm allows recursive values. See
 an example
 [here](https://github.com/debois/elm-dom/blob/master/src/DOM.elm#L165-L176).
 -}
-offsetParent : a -> Json.Decoder a -> Json.Decoder a
+offsetParent : a -> Decoder a -> Decoder a
 offsetParent x decoder =
-  Json.oneOf
-  [ "offsetParent" := Json.null x
+  Decode.oneOf
+  [ "offsetParent" := Decode.null x
   , "offsetParent" := decoder
   ]
 
 
+{-| Get the parent of an element. 
+-}
+parentElement : Decoder a -> Decoder a
+parentElement decoder = 
+  "parentElement" := decoder
+
+
+{-| Find the ith child of an element. 
+-}
+childNode : Int -> Decoder a -> Decoder a
+childNode idx = 
+  at [ "childNodes", toString idx ]
+
+
+{-| Get the children of an element.
+-}
+childNodes : Decoder a -> Decoder (List a)
+childNodes decoder = 
+  let
+    loop idx xs = 
+      Decode.maybe (toString idx := decoder)
+        `Decode.andThen` (
+          Maybe.map (\x -> loop (idx+1) (x::xs))
+            >> Maybe.withDefault (Decode.succeed xs)
+        )
+  in
+    ("childNodes" := loop 0 [])
+      |> Decode.map List.reverse
+
+
+
+-- GEOMETRY 
 
 {-| Get the width of an element in pixels; underlying implementation
 reads `.offsetWidth`.
 -}
-offsetWidth : Json.Decoder Float
-offsetWidth = "offsetWidth" := Json.float
+offsetWidth : Decoder Float
+offsetWidth = "offsetWidth" := Decode.float
 
 
 {-| Get the heigh of an element in pixels. Underlying implementation
 reads `.offsetHeight`.
 -}
-offsetHeight : Json.Decoder Float
-offsetHeight = "offsetHeight" := Json.float
+offsetHeight : Decoder Float
+offsetHeight = "offsetHeight" := Decode.float
 
 
 {-| Get the left-offset of the element in the parent element in pixels.
 Underlying implementation reads `.offsetLeft`.
 -}
-offsetLeft : Json.Decoder Float
-offsetLeft = "offsetLeft" := Json.float
+offsetLeft : Decoder Float
+offsetLeft = "offsetLeft" := Decode.float
 
 
 {-| Get the top-offset of the element in the parent element in pixels.
 Underlying implementation reads `.offsetTop`.
 -}
-offsetTop : Json.Decoder Float
-offsetTop = "offsetTop" := Json.float
+offsetTop : Decoder Float
+offsetTop = "offsetTop" := Decode.float
 
 
 {-| Get the amount of left scroll of the element in pixels.
 Underlying implementation reads `.scrollLeft`.
 -}
-scrollLeft : Json.Decoder Float
-scrollLeft = "scrollLeft" := Json.float
+scrollLeft : Decoder Float
+scrollLeft = "scrollLeft" := Decode.float
 
 
 {-| Get the amount of top scroll of the element in pixels.
 Underlying implementation reads `.scrollTop`.
 -}
-scrollTop : Json.Decoder Float
-scrollTop = "scrollTop" := Json.float
+scrollTop : Decoder Float
+scrollTop = "scrollTop" := Decode.float
 
 
 {-| Types for rectangles.
@@ -134,9 +170,9 @@ solution with ports. So we do it like in the bad old days with an O(lg n)
 traversal of the DOM, only now through presumably expensive JSON decoders.
 It's 2007 forever, baby!)
 -}
-boundingClientRect : Json.Decoder Rectangle
+boundingClientRect : Decoder Rectangle
 boundingClientRect =
-  Json.object3
+  Decode.object3
     (\(x, y) width height ->
       { top = y
       , left = x
@@ -162,9 +198,9 @@ boundingClientRect =
     }
     var x = getOffset( document.getElementById('yourElId') ).left; )
 -}
-position : Float -> Float -> Json.Decoder (Float, Float)
+position : Float -> Float -> Decoder (Float, Float)
 position x y =
-  Json.object4
+  Decode.object4
     (\scrollLeft scrollTop offsetLeft offsetTop ->
       (x + offsetLeft - scrollLeft, y + offsetTop - scrollTop))
     scrollLeft
@@ -174,3 +210,15 @@ position x y =
   `andThen` (\(x',y') ->
     offsetParent (x', y') (position x' y')
   )
+
+
+-- MISC
+
+
+{-| Get the class name(s) of an element.
+-}
+className : Decoder String
+className = 
+  at [ "className" ] Decode.string
+
+
