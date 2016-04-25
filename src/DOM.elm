@@ -1,5 +1,7 @@
 module DOM
-  ( target, offsetParent, parentElement, childNode, childNodes
+  ( target, offsetParent, parentElement
+  , nextSibling, previousSibling
+  , childNode, childNodes
   , offsetWidth, offsetHeight
   , offsetLeft, offsetTop
   , scrollLeft, scrollTop
@@ -11,7 +13,7 @@ module DOM
 See the `target` value for example use.
 
 # Traversing the DOM
-@docs target, offsetParent, parentElement, childNode, childNodes
+@docs target, offsetParent, parentElement, nextSibling, previousSibling, childNode, childNodes
 
 # Geometry
 Decoders for reading sizing etc. properties off the DOM. All decoders return
@@ -69,6 +71,19 @@ offsetParent x decoder =
   [ "offsetParent" := Decode.null x
   , "offsetParent" := decoder
   ]
+
+
+{-| Get the next sibling of an element.
+-}
+nextSibling : Decoder a -> Decoder a
+nextSibling decoder =
+  "nextSibling" := decoder
+
+{-| Get the previous sibling of an element.
+-}
+previousSibling : Decoder a -> Decoder a
+previousSibling decoder =
+  "previousSibling" := decoder
 
 
 {-| Get the parent of an element. 
