@@ -1,5 +1,3 @@
-
-
 import Signal exposing (Address, Mailbox)
 import Html exposing (..)
 import Html.Attributes exposing (..)

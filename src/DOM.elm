@@ -92,7 +92,7 @@ childNodes decoder =
   let
     loop idx xs = 
       Decode.maybe (toString idx := decoder)
-        `Decode.andThen` (
+        `andThen` (
           Maybe.map (\x -> loop (idx+1) (x::xs))
             >> Maybe.withDefault (Decode.succeed xs)
         )
