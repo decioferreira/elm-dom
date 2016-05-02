@@ -13,21 +13,23 @@ type alias Model
 
 
 model0 : Model
-model0 = 
+model0 =
   "(Nothing)"
 
 
 box : Mailbox Model
-box = 
+box =
   Signal.mailbox model0
 
 
-items : Html 
-items = 
+items : Html
+items =
   [0..5]
-  |> List.map (\idx -> 
-    li 
-      [ class (toString idx) ]
+  |> List.map (\idx ->
+    li
+      -- elm-dom will later extract the class names directly from the DOM out of
+      -- the elements.
+      [ class <| "class-" ++ (toString idx) ]
       [ text <| "Item " ++ toString idx ]
   ) -- childNodes
   |> ul [] --childNode 0 (b)
@@ -35,37 +37,37 @@ items =
 
 infixr 5 :>
 (:>) : (a -> b) -> a -> b
-(:>) f x = 
+(:>) f x =
   f x
 
 
 decode : Decoder String
-decode = 
-  DOM.target 
+decode =
+  DOM.target
   :> parentElement
   :> childNode 0 -- (a)
   :> childNode 0 -- (b)
-  :> childNodes className
+  :> childNodes className -- Extract the class name from the elements
   |> Decode.map (String.join ", ")
 
 
 view : Model -> Html
-view model = 
+view model =
   div -- parentElement
     [ class "root" ]
     [ div -- childNode 0 (a)
         [ class "container"]
-        [ items ]
-    , div 
-        [ class "value" ] 
+        [ items ] -- See childNode 0 (b) in the above "items" function
+    , div
+        [ class "value" ]
         [ text <| "Model value: " ++ toString model ]
     , button -- target
         [ class "button"
-        , on "click" decode  (Signal.message box.address) 
+        , on "click" decode  (Signal.message box.address)
         ]
         [ text "Click" ]
     ]
 
 main : Signal Html
-main = 
+main =
   Signal.map view box.signal
