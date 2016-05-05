@@ -61,9 +61,7 @@ target decoder =
 element is already the root; applies the second argument to the parent element
 if not.
 
-To do traversals of the DOM, exploit that Elm allows recursive values. See
-an example
-[here](https://github.com/debois/elm-dom/blob/master/src/DOM.elm#L165-L176).
+To do traversals of the DOM, exploit that Elm allows recursive values. 
 -}
 offsetParent : a -> Decoder a -> Decoder a
 offsetParent x decoder =
@@ -118,7 +116,9 @@ childNodes decoder =
 
 
 
+
 -- GEOMETRY 
+
 
 {-| Get the width of an element in pixels; underlying implementation
 reads `.offsetWidth`.
