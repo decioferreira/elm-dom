@@ -1,10 +1,14 @@
-import Signal exposing (Address, Mailbox)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Json.Decode as Decode exposing (..)
-import DOM exposing (..)
+import Html.App exposing (map)
+import Platform.Cmd exposing (none)
+import Platform.Sub
+import Json.Decode as Decode exposing (Decoder)
 import String
+
+import DOM exposing (..)
+
 
 type alias Model
   = String
@@ -15,12 +19,18 @@ model0 =
   "(Nothing)"
 
 
-box : Mailbox Model
-box =
-  Signal.mailbox model0
+type Msg = 
+  Measure String
 
 
-items : Html
+update : Msg -> Model -> (Model, Cmd Msg)
+update msg model = 
+  case msg of
+    Measure str -> 
+      (str, none)
+
+
+items : Html a
 items =
   [0..5]
   |> List.map (\idx ->
@@ -49,7 +59,7 @@ decode =
   |> Decode.map (String.join ", ")
 
 
-view : Model -> Html
+view : Model -> Html Msg
 view model =
   div -- parentElement
     [ class "root" ]
@@ -59,13 +69,19 @@ view model =
     , div
         [ class "value" ]
         [ text <| "Model value: " ++ toString model ]
-    , button -- target
+    , map Measure <| button -- target
         [ class "button"
-        , on "click" decode  (Signal.message box.address)
+        , on "click" decode  
         ]
         [ text "Click" ]
     ]
 
-main : Signal Html
-main =
-  Signal.map view box.signal
+
+main : Program Never
+main = 
+  Html.App.program 
+    { init = ( model0, none )
+    , update = update
+    , subscriptions = always Sub.none
+    , view = view
+    }

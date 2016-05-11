@@ -1,12 +1,10 @@
-import StartApp
-import Task exposing (Task)
-import Signal exposing (Signal, Address)
-import Effects exposing (Effects, Never)
+import Html.App exposing (map)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Platform.Cmd exposing (none)
+import Platform.Sub
 import String
-
 import Json.Decode as Json exposing (Decoder)
 
 import DOM exposing (..)
@@ -16,16 +14,21 @@ type alias Model =
   () -> List Float
 
 
-type Action 
+model : Model 
+model = 
+  always []
+
+
+type Msg 
   = Measure Json.Value
   | NoOp
 
 
-init : (Model, Effects Action)
-init = (always [], Effects.none)
+init : (Model, Cmd Msg)
+init = (always [], none)
 
 
-update : Action -> Model -> (Model, Effects Action)
+update : Msg -> Model -> (Model, Cmd Msg)
 update action model = 
   case action of
     Measure val -> 
@@ -34,10 +37,10 @@ update action model =
           |> Result.toMaybe
           |> Maybe.withDefault [] 
        )
-      , Effects.none)
+      , none)
 
     NoOp -> 
-      (model, Effects.none)
+      (model, none)
 
 
 -- VIEW
@@ -59,13 +62,13 @@ decode =
        DOM.offsetHeight          -- read the width of each element
 
 
-css : Attribute
+css : Attribute a
 css = 
   style [ ("padding", "1em") ]
 
 
-view : Address Action -> Model -> Html
-view addr model = 
+view : Model -> Html Msg
+view model = 
   div -- parentElement (b)
     []
     [ div -- childNode 0 (c)
@@ -78,14 +81,14 @@ view addr model =
             , span [ css ] [ text "much longer than the others" ]
             ] -- childNodes (e)
         ]
-    , button -- target (a)
+    , map Measure <| button -- target (a)
         [ css
-        , on "click" Json.value (Measure >> Signal.message addr)
+        , on "click" Json.value 
         ]
         [ text "Measure!" ]
     , button 
         [ css 
-        , onClick addr NoOp 
+        , onClick NoOp
         ]
         [ text "Call the function."
         ]
@@ -100,19 +103,15 @@ view addr model =
     ]
 
 
--- STARTAPP
+-- APP
 
 
-app : StartApp.App Model
-app =
-  StartApp.start { init = init, view = view, update = update, inputs = [] }
-
-main : Signal Html
+main : Program Never
 main =
-  app.html
-
-port tasks : Signal (Task Never ())
-port tasks =
-  app.tasks
-
+  Html.App.program
+    { init = ( model, none )
+    , subscriptions = always Sub.none
+    , update = update
+    , view = view
+    }
 

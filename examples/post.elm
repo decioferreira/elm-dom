@@ -1,12 +1,10 @@
-import StartApp
-import Task exposing (Task)
-import Signal exposing (Signal, Address)
-import Effects exposing (Effects, Never)
+import Html.App exposing (map)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Platform.Cmd exposing (none)
+import Platform.Sub
 import String
-
 import Json.Decode exposing (Decoder)
 
 import DOM exposing (..)
@@ -16,18 +14,23 @@ type alias Model =
   List Float
 
 
-type Action 
+model : Model 
+model = 
+  []
+
+
+type Msg 
   = Measure (List Float)
 
 
-init : (Model, Effects Action)
-init = ([], Effects.none)
+init : (Model, Cmd Msg)
+init = ([], none)
 
 
-update : Action -> Model -> (Model, Effects Action)
+update : Msg -> Model -> (Model, Cmd Msg)
 update action model = 
   case action of
-    Measure measures -> (measures, Effects.none)
+    Measure measures -> (measures, none)
 
 
 -- VIEW
@@ -49,13 +52,13 @@ decode =
        DOM.offsetWidth          -- read the width of each element
 
 
-css : Attribute
+css : Attribute a
 css = 
   style [ ("padding", "1em") ]
 
 
-view : Address Action -> Model -> Html
-view addr model = 
+view : Model -> Html Msg
+view model = 
   div -- parentElement (b)
     []
     [ div -- childNode 0 (c)
@@ -67,9 +70,9 @@ view addr model =
             , span [ css ] [ text "longer than the others" ]
             ] -- childNodes (e)
         ]
-    , button -- target (a)
+    , map Measure <| button -- target (a)
         [ css
-        , on "click" decode (Measure >> Signal.message addr)
+        , on "click" decode 
         ]
         [ text "Measure!" ]
     , div 
@@ -86,16 +89,13 @@ view addr model =
 -- STARTAPP
 
 
-app : StartApp.App Model
-app =
-  StartApp.start { init = init, view = view, update = update, inputs = [] }
-
-main : Signal Html
+main : Program Never
 main =
-  app.html
-
-port tasks : Signal (Task Never ())
-port tasks =
-  app.tasks
+  Html.App.program 
+    { init = ( model, none ) 
+    , view = view
+    , subscriptions = always Sub.none
+    , update = update
+    }
 
 
