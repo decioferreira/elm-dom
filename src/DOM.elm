@@ -1,4 +1,4 @@
-module DOM
+module DOM exposing
   ( target, offsetParent, parentElement
   , nextSibling, previousSibling
   , childNode, childNodes
@@ -7,7 +7,7 @@ module DOM
   , scrollLeft, scrollTop
   , Rectangle, boundingClientRect
   , className
-  ) where
+  ) 
 
 {-| You read values off the DOM by constructing a JSON decoder.
 See the `target` value for example use.
