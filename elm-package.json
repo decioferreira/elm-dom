@@ -1,5 +1,5 @@
 {
-    "version": "1.2.1",
+    "version": "1.2.2",
     "summary": "DOM traversal for Elm event-handlers",
     "repository": "https://github.com/debois/elm-dom.git",
     "license": "BSD3",
