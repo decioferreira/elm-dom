@@ -44,12 +44,10 @@ the width of the button:
 
     import DOM exposing (target, offsetWidth)
 
-    type Action = Click Float
-
-    myButton : Signal.Address Action -> Html
-    myButton addr =
+    myButton : Html Float
+    myButton =
       button
-        [ on "click" (target offsetWidth) (Click >> Signal.message addr) ]
+        [ on "click" (target offsetWidth) ]
         [ text "Click me!" ]
 -}
 target : Decoder a -> Decoder a
@@ -177,14 +175,19 @@ type alias Rectangle =
 based off
 [this stackoverflow answer](https://stackoverflow.com/questions/442404/retrieve-the-position-x-y-of-an-html-element).
 
-NB! This decoder is likely computationally expensive and may produce results
-that differ slightly from `getBoundingClientRect` in browser-dependent ways.
+NB! This decoder produces wrong results if a parent element is scrolled and
+does not have explicit positioning (e.g., `position: relative;`); see
+[this issue](https://github.com/debois/elm-dom/issues/4). 
+
+Also note that this decoder is likely computationally expensive and may produce
+results that differ slightly from `getBoundingClientRect` in browser-dependent
+ways.
 
 (I don't get to call getBoundingClientRect directly from Elm without going
 native or using ports; my packages don't get to go native and I can find no
 solution with ports. So we do it like in the bad old days with an O(lg n)
-traversal of the DOM, only now through presumably expensive JSON decoders.
-It's 2007 forever, baby!)
+traversal of the DOM, browser-dependencies and CSS quirks, only now through
+presumably expensive JSON decoders.  It's 2007 forever, baby!)
 -}
 boundingClientRect : Decoder Rectangle
 boundingClientRect =
