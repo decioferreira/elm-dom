@@ -1,6 +1,7 @@
 module DOM
     exposing
-        ( target
+        ( currentTarget
+        , target
         , offsetParent
         , parentElement
         , nextSibling
@@ -45,6 +46,23 @@ for the precise semantics of these measurements. See also
 -}
 
 import Json.Decode as Decode exposing (at, field, andThen, Decoder)
+
+
+{-| Get the currentTarget DOM element of an event. You will usually start with this
+decoder. E.g., to make a button which when clicked emit an Action that carries
+the width of the button:
+
+    import DOM exposing (currentTarget, offsetWidth)
+
+    myButton : Html Float
+    myButton =
+      button
+        [ on "click" (currentTarget offsetWidth) ]
+        [ text "Click me!" ]
+-}
+currentTarget : Decoder a -> Decoder a
+currentTarget decoder =
+    field "currentTarget" decoder
 
 
 {-| Get the target DOM element of an event. You will usually start with this
